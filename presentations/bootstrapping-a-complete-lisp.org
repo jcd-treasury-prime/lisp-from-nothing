@@ -1,0 +1,56 @@
+#+OPTIONS: num:nil toc:nil title:nil theme:solarized
+* Bootstrapping a Complete Lisp
+** Psuedo Strings Are Weird
+#+BEGIN_SRC lisp
+  (SETQ *LP "(")
+#+END_SRC
+#+ATTR_REVEAL: :frag (appear)
++ I find psuedo strings to be exceptionally weird; they are symbols that fool you.
++ The syntax highlighting hurts us because it tricks us into thinking ~*LP~ is not a symbol.
+** Psuedo Strings Are Weird
+#+BEGIN_SRC
+  (SETQ *LP "(")
+#+END_SRC
+
+  #+ATTR_REVEAL: :frag (appear)
++ If we remove highlighting, we underscore that ~*LP~ really is just a symbol.
++ Still, this strikes me as pretty weird to reason about.
+** Cell Digression
+The atoms/list/cells digression on pages 51-53 is pretty interesting.
+  #+ATTR_REVEAL: :frag (appear)
+  + Everything in symbolic list is a cell: lists, atoms.
+  + A cell has three parts: ~car~, ~cdr~, ~tag~.
+  + Atoms have a ~car~ and a ~cdr~ just like lists, or ~cons cells~.
+** Atom Structure
+  #+ATTR_REVEAL: :frag (appear)
+  + The ~car~ points to another list of cells, the ~atom name~.
+  + The ~cdr~ points to the atom value
+  + The list of characters in the ~atom name~ each have their ~tag~ set, identifying them as such
+** Atom Structure
+This structure also underlying atoms allows ~*WRITEC~ to work the way it does:
+
+#+BEGIN_SRC lisp
+  (*WRITEC (QUOTE FOO))
+  (*WRITEC (*CAR (QUOTE FOO)))
+#+END_SRC
+
+** Random Tidbits: LEXPR and Eta Expansion
+The wrapping of all the "inlined" functions with LEXPR is interesting:
+#+BEGIN_SRC lisp
+  (SETQ CAR (LAMBDA (X) (CAR X)))
+#+END_SRC
+~CAR~ becomes the quoted ~LEXPR~ and so can be used in higher order functions.
+** Random Tidbits: LEXPR and Eta Expansion
+This is cool... but I really don't understand how "inlining" by the compiler
+breaks things without it.
+** Random Tidbits: Typo in the EQUAL defintion?
+There's a typo in the ~EQUAL~ definition on page 48 AFAICT...
+#+BEGIN_SRC clojure
+(SETQ EQUAL
+  (LAMBDA (A B)
+    (COND (EQ A B))  ;; what's missing?
+          ((ATOM A) nil)
+          ((ATOM B) nil)
+          ((EQUAL (CAR A) (CAR B))
+           (EQUAL (CDR A) (CDR B)))
+#+END_SRC

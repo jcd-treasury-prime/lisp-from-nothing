@@ -1,0 +1,32 @@
+* Let the be Lisp
+** M-Expressions vs. S-Expressions
+*** M-Expressions more "mathy"
+#+BEGIN_SRC
+  label[square;λ[[x];times[x;x]]]
+#+END_SRC
+
+*** S-Expressions sparser
+#+BEGIN_SRC lisp
+  (define square (lambda (x) (* x x)))
+#+END_SRC
+
+*** A parser for S-Expressions seems far easier
+** Logical Evaluation vs Conditional Evaluation
+  #+ATTR_REVEAL: :frag (appear)
+- M-expressions are logically evaluated
+- S-expressions eventually were conditionally evaluated
+- S-expressions being machine instructions had benefits it seems
+
+** LABEL
+*** What's up with the issue of recursive anonymous functions?
+*** I can't get the example to work in the repl.it scheme
+[[https://replit.com/@JakeDavis12/LfN#main.scm][Link]]
+*** Lexical vs dynamic scope
+    The aside at the back of the book seems a little too nuts.
+
+** The missing bits
+  #+ATTR_REVEAL: :frag (appear)
+  - READ (reader/parser)
+  - PRINT (printer)
+  - Unlimited CONS pool (garbage collector)
+  - EVAL

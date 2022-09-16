@@ -1,0 +1,87 @@
+#+OPTIONS: num:nil toc:nil title:nil theme:solarized
+* Low Level Interface
+** Function Return Values
+Looking at the function signatures, I was a little confused: several of them
+lack return types!
+
+I thought maybe this was just Nils being sloppy... presumably these ~void~
+functions should be marked as such. Is this standard for C?
+*** Macros!
+It turns out the low level functions that do not have return types are
+implemented as macros:
+#+BEGIN_SRC c
+  #define symbolic() (tag[car[ref(expr)]] & atomtag)
+#+END_SRC
+*** goto(x) seems dangerous
+The definition of ~goto(x)~ seems deliciously dangerous:
+#+BEGIN_SRC c
+  #define goto(x) k = x; break
+#+END_SRC
+** Memory Organization
+Memory is handled as a set of three arrays, as initialized in the ~init~
+function:
+#+BEGIN_SRC c
+  void init(void) {
+    memset(car, 0, limit*sizeof(cell));
+    memset(cdr, 0, limit*sizeof(cell));
+    memset(tag, 0, limit);
+    car[true] = tname;
+    cdr[true] = true;
+    car[tname] = 84; /* T */
+    cdr[tname] = nil;
+    tag[tname] = atomtag;
+  }
+#+END_SRC
+*** Reserved Objects
+The special objects (like ~nil~ or ~symlist~) are placed at the top of these
+structures with C macros:
+#+begin_src c
+  #define nil	0
+  #define true	1
+  #define symlis	2
+  #define oblist	3
+  #define stack	4
+  #define expr	5
+  #define expr2	6
+  #define tmp	7
+  #define funtag	8
+  #define tname	9
+  #define frelis	10
+#+end_src
+*** ~ref~ and ~val~
+~ref~ and ~val~ are synonyms for ~car~ and ~cdr~.
+* LISCMP
+The way the compiler treats numbers is interesting: they are a list of symbols.
+** The SUCC and INCR Functions
+Theres a lot of interesting stuff going on in these functions. First, ~SUCC~ is
+a way of getting a successor integer purely with symbols:
+#+begin_src lisp
+(SETQ SUCC
+  (LAMBDA (X)
+    (CADR (ASSOC X (QUOTE ((0 1) (1 2) (2 3)
+                           (3 4) (4 5) (5 6)
+                           (6 7) (7 8) (8 9)
+                           (9 0)))))))
+#+end_src
+#+ATTR_REVEAL: :frag (appear)
++ This is pretty clever
+*** INCR
+~INCR~ makes use of ~SUCC~ to get the next number for each digit, keeping track
+of whether each successive digit was 0 (and so entails adding one to the ~SUCC~ of
+the next).
+#+begin_src lisp
+(SETQ INCR
+  (LAMBDA (X)
+    (LABEL
+      ((LOOP (LAMBDA (X C Y)
+         (COND ((EQ X NIL)
+                 (COND (C (CONS (QUOTE 1) Y)) (T Y)))
+               (C (SETQ INCR-TMP (SUCC (CAR X)))
+                  (LOOP (CDR X)
+                        (EQ INCR-TMP (QUOTE 0))
+                        (CONS INCR-TMP Y)))
+               (T (LOOP (CDR X)
+                        NIL
+                        (CONS (CAR X) Y)))))))
+      (LOOP (REVERSE X) T NIL))))
+#+end_src
